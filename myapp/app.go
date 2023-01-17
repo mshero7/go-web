@@ -3,7 +3,9 @@ package myapp
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -30,7 +32,7 @@ func (f *fooHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	data, _ := json.Marshal(user)
 	w.Header().Add("content-type", "application/json") // json format에 맞게 처리되게끔
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	fmt.Fprint(w, string(data))
 }
 
@@ -49,7 +51,38 @@ func barHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello %s!", name)
 }
 
+func uploadsHandler(w http.ResponseWriter, r *http.Request) {
+	uploadFile, header, err := r.FormFile("upload_file")
+
+	r.Header.Add("Content-Type", "multipart/form-data")
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err)
+		return
+	}
+	defer uploadFile.Close()
+
+	dirname := "C:/Users/ssmoon/Desktop/Moon/go-web/uploads"
+	os.MkdirAll(dirname, 0777)
+	filepath := fmt.Sprintf("%s/%s", dirname, header.Filename)
+	file, err := os.Create(filepath)
+	defer file.Close()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, err)
+		return
+	}
+
+	io.Copy(file, uploadFile)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, filepath)
+}
+
 func NewHttpHandler() http.Handler {
+	// static HTML FILE
+	fileServerHtml := http.FileServer(http.Dir("./public"))
+
 	// mux 라는 라우터 인스턴스를 통해 처리
 	mux := http.NewServeMux()
 
@@ -61,6 +94,10 @@ func NewHttpHandler() http.Handler {
 
 	// 핸들러를 인스턴스 형태로 등록할때는 Handle()함수
 	mux.Handle("/foo", &fooHandler{})
+
+	// 파일 업로드용 핸들러
+	mux.Handle("/file/", http.StripPrefix("/file/", fileServerHtml))
+	mux.HandleFunc("/file/uploads", uploadsHandler)
 
 	return mux
 }
