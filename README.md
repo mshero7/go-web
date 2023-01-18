@@ -5,3 +5,7 @@
 주석과 app.go에 handler 를 우겨넣는 삽질중
 
 https://www.youtube.com/@TuckerProgramming 의 Go 로 만드는 웹 참고.
+
+Note
+1. New(Type)은 포인터 Type을 반환함
+2. Map[key] 할때 value, err 을 리턴함
