@@ -11,5 +11,6 @@ func main() {
 
 	// 웹서버 실행, request 를 기다리는 상태가 됌
 	go http.ListenAndServe(":3001", myapp.NewRestApiHandler())
+	go http.ListenAndServe(":3002", myapp.NewDecoHandler())
 	http.ListenAndServe(":3000", myapp.NewHttpHandler())
 }

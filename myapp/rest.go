@@ -168,5 +168,7 @@ func NewRestApiHandler() http.Handler {
 	mux.HandleFunc("/users/{id:[0-9]+}", deleteUserHandler).Methods("DELETE")
 	mux.HandleFunc("/users/{id:[0-9]+}", updateUserHandler).Methods("PUT")
 
+	NewDecoHandler(mux, logger)
+
 	return mux
 }
